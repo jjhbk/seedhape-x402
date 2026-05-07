@@ -1,0 +1,68 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Seedhape x402 seller endpoint
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: python3.12
+
+Parameters:
+  PaymentRecipient:
+    Type: String
+  FacilitatorUrl:
+    Type: String
+    Default: https://api.cdp.coinbase.com/platform/v2/x402
+  UsdcAddress:
+    Type: String
+    Default: "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+  CdpApiKeyId:
+    Type: String
+    NoEcho: true
+  CdpApiKeySecret:
+    Type: String
+    NoEcho: true
+  SeedhapeWebhookUrl:
+    Type: String
+  SeedhapeWebhookSecret:
+    Type: String
+    NoEcho: true
+
+Resources:
+  SellerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: handler.lambda_handler
+      Environment:
+        Variables:
+          NETWORK_ID: base-sepolia
+          USDC_ADDRESS: !Ref UsdcAddress
+          PAYMENT_RECIPIENT_ADDRESS: !Ref PaymentRecipient
+          INR_PER_USDC: "84"
+          FACILITATOR_URL: !Ref FacilitatorUrl
+          CDP_API_KEY_ID: !Ref CdpApiKeyId
+          CDP_API_KEY_SECRET: !Ref CdpApiKeySecret
+          SEEDHAPE_WEBHOOK_URL: !Ref SeedhapeWebhookUrl
+          SEEDHAPE_WEBHOOK_SECRET: !Ref SeedhapeWebhookSecret
+      Events:
+        ListMerchants:
+          Type: HttpApi
+          Properties:
+            Path: /merchants
+            Method: GET
+        ListProducts:
+          Type: HttpApi
+          Properties:
+            Path: /merchants/{merchantId}/products
+            Method: GET
+        Buy:
+          Type: HttpApi
+          Properties:
+            Path: /merchants/{merchantId}/products/{productId}/buy
+            Method: GET
+
+Outputs:
+  SellerApiUrl:
+    Value: !Sub https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com

@@ -1,0 +1,15 @@
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "seedhape-x402-seller"
+resolve_s3 = true
+s3_prefix = "seedhape-x402-seller"
+region = "us-east-2"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+disable_rollback = true
+parameter_overrides = "PaymentRecipient=\"0x75D443A5D378d9902A29880AC89B6F60F0A097D6\" FacilitatorUrl=\"https://api.cdp.coinbase.com/platform/v2/x402\" UsdcAddress=\"0x036CbD53842c5426634e7929541eC2318f3dCF7e\" SeedhapeWebhookUrl=\"https://x0p0t988xd.execute-api.us-east-2.amazonaws.com/webhook\""
+image_repositories = []
+
+[default.global.parameters]
+region = "us-east-2"
