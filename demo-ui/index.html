@@ -2,22 +2,191 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Seedhape x402 Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Seedhape x402 Live Demo</title>
   <style>
-    body { font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; background: #0f1115; color: #e8e8e8; margin: 0; padding: 24px; }
-    h1 { font-weight: 500; letter-spacing: 0.02em; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; height: calc(100vh - 140px); }
-    .pane { background: #1a1d24; border-radius: 12px; padding: 16px; overflow-y: auto; }
-    .pane h2 { font-size: 13px; font-weight: 500; color: #aaa; margin: 0 0 12px; text-transform: uppercase; letter-spacing: 0.1em; }
+    :root {
+      --bg: #0b0f12;
+      --panel: #131a20;
+      --panel-soft: #1a232c;
+      --text: #e7f2ff;
+      --muted: #97a7b7;
+      --accent: #2cc2ff;
+      --accent-2: #35e39a;
+      --warn: #ffcc66;
+      --danger: #ff6f6f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background: radial-gradient(1200px 600px at 10% -10%, #15314a 0%, transparent 60%),
+                  radial-gradient(900px 400px at 100% 0%, #1a3b2e 0%, transparent 55%),
+                  var(--bg);
+      font: 14px/1.45 "IBM Plex Mono", "JetBrains Mono", ui-monospace, monospace;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .wrap { max-width: 1300px; margin: 0 auto; }
+    h1 { margin: 0 0 8px; font-size: 24px; letter-spacing: .01em; }
+    .sub { margin: 0 0 16px; color: var(--muted); }
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      margin-bottom: 16px;
+      background: var(--panel);
+      border: 1px solid #24303c;
+      border-radius: 12px;
+      padding: 12px;
+    }
+    input {
+      width: 100%;
+      background: #0e151b;
+      color: var(--text);
+      border: 1px solid #2a3642;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font: inherit;
+    }
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 16px;
+      background: linear-gradient(135deg, var(--accent), #3f8cff);
+      color: #06111a;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:disabled { opacity: .6; cursor: default; }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      height: calc(100vh - 195px);
+    }
+    .pane {
+      background: linear-gradient(180deg, var(--panel) 0%, var(--panel-soft) 100%);
+      border: 1px solid #24303c;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .head {
+      padding: 10px 12px;
+      border-bottom: 1px solid #24303c;
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .body {
+      padding: 10px 12px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .line {
+      background: #0c1218;
+      border: 1px solid #1f2a34;
+      border-radius: 8px;
+      padding: 8px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .agent { border-left: 3px solid #8ca5ff; }
+    .tool { border-left: 3px solid var(--warn); color: #ffe1a8; }
+    .tx { border-left: 3px solid var(--accent-2); color: #bfffdc; }
+    .wa { border-left: 3px solid var(--accent); color: #bde9ff; }
+    .err { border-left: 3px solid var(--danger); color: #ffc0c0; }
+    .status { color: var(--muted); font-size: 12px; margin-top: 8px; }
+    @media (max-width: 1000px) {
+      .grid { grid-template-columns: 1fr; height: auto; }
+      .pane { min-height: 240px; }
+    }
   </style>
 </head>
 <body>
-  <h1>Seedhape x402 - Agentic commerce, real merchants</h1>
-  <p style="color:#888">Optional static demo shell. For hackathon speed, record terminal + CloudWatch side-by-side.</p>
-  <div class="grid" style="margin-top:16px">
-    <div class="pane"><h2>Agent reasoning</h2><div id="agent"></div></div>
-    <div class="pane"><h2>x402 + Base Sepolia</h2><div id="tx"></div></div>
-    <div class="pane"><h2>Merchant WhatsApp</h2><div id="wa"></div></div>
+  <div class="wrap">
+    <h1>Seedhape x402 - Live Judge Demo</h1>
+    <p class="sub">Agent discovers a merchant, settles with x402 on Base, then triggers Seedhape webhook simulation.</p>
+
+    <div class="controls">
+      <input id="prompt" value="Buy an indigo kurta size M from a Jaipur merchant" />
+      <button id="runBtn" onclick="runDemo()">Run Demo</button>
+    </div>
+
+    <div class="grid">
+      <section class="pane">
+        <div class="head">Agent Reasoning</div>
+        <div class="body" id="agent"></div>
+      </section>
+      <section class="pane">
+        <div class="head">x402 + Base Sepolia</div>
+        <div class="body" id="tx"></div>
+      </section>
+      <section class="pane">
+        <div class="head">Merchant WhatsApp</div>
+        <div class="body" id="wa"></div>
+      </section>
+    </div>
+    <div class="status" id="status">Ready.</div>
   </div>
+
+<script>
+let es = null;
+
+function setStatus(msg) {
+  document.getElementById('status').textContent = msg;
+}
+
+function clearPanes() {
+  ['agent', 'tx', 'wa'].forEach(id => document.getElementById(id).innerHTML = '');
+}
+
+function append(pane, text, cls) {
+  const host = document.getElementById(pane);
+  const item = document.createElement('div');
+  item.className = `line ${cls}`;
+  item.textContent = text;
+  host.appendChild(item);
+  host.scrollTop = host.scrollHeight;
+}
+
+function runDemo() {
+  const prompt = document.getElementById('prompt').value.trim();
+  if (!prompt) return;
+
+  if (es) es.close();
+  clearPanes();
+  document.getElementById('runBtn').disabled = true;
+  setStatus('Running agent...');
+
+  es = new EventSource('/stream?prompt=' + encodeURIComponent(prompt));
+
+  es.addEventListener('agent', (e) => append('agent', e.data, 'agent'));
+  es.addEventListener('tool', (e) => append('agent', e.data, 'tool'));
+  es.addEventListener('tx', (e) => append('tx', e.data, e.data.startsWith('ERROR') ? 'err' : 'tx'));
+  es.addEventListener('wa', (e) => append('wa', e.data, 'wa'));
+
+  es.addEventListener('done', (e) => {
+    setStatus(e.data === 'complete' ? 'Done.' : 'Finished with errors.');
+    document.getElementById('runBtn').disabled = false;
+    es.close();
+    es = null;
+  });
+
+  es.onerror = () => {
+    setStatus('Stream interrupted. Check backend server logs.');
+    document.getElementById('runBtn').disabled = false;
+    if (es) {
+      es.close();
+      es = null;
+    }
+  };
+}
+</script>
 </body>
 </html>
